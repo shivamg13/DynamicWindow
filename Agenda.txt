@@ -1,0 +1,28 @@
+NF => How to estimate the standard deviation (and 95% confidence interval)
+
+Try out (d1+d2)/2 or why not just drop the denominator
+
+First fix the high standard deviation case by limiting the window size when you are 95% confident about your prediction
+
+How to estimate the parameters => estimate the mean and standard deviation and then use some 95% confidence kind of idea
+
+Think how alpha and other parameters should be varied
+
+CF should be calculated in such a way that if the 2 numbers are far away more than 5% time, then it should penalize.
+
+When should we stop increasing the window size : when we are reasonably confident about our estimate : Paper  "Online Linear Regression and Its Application to
+Model-Based Reinforcement Learning" may be helpful => This may lead to a new exploration-exploitation strategy
+
+
+Some subtle changes/ideas
+
+
+Explain in the thesis why it is not a good idea to keep increasing the sliding window size.
+
+Reason for change from multiplicative decrease to sudden decrease : Multiplicative decrease introduces additional parameter. Same effect can be achieved by using different convex combination to calculate CQ. Also, sometimes some baggage remains while doing multiplicative decrease which haunts later. 
+
+General idea for threshhold : Should be more for more standard deviation. Reason - interval= t*sd*sqrt(...)
+
+When a sliding window contains all the arms which are same, then next arm pulled is chosen to be as close to the already present arms in the window. This will help not drastically changing the confidence interval due to change in x_bar. 
+
+"What is the penalty of not increasing the window size" : You will end up having all the arms same in the window more often, resulting in having to pull a non-optimal arm resulting in more cumulative regret. "What is the fix" : Whenever such a scenario happens increase the window size by 1. In this way, we get the best of both worlds, resulting in increasing the window size by O(sqrt(T)) in such cases in worst case. 
