@@ -1,8 +1,5 @@
 library(stats)
 
-
-
-
 getDemand <- function(N,p,b,i){
   if(b==0)
     print("Error! b cant't be 0.")
@@ -111,7 +108,6 @@ findConfInt <- function (X,Y,fit,curX,alpha)
   {
     return (Inf)
   }
-  #print(c(N,s,alpha,qt(1-alpha/2,df=N-2)*sy))
   return (qt(1-alpha/2,df=N-2)*sy)
 }
 
@@ -126,7 +122,6 @@ findConfIntPoint <- function (X,Y,fit,curX,alpha)
   #print (c(curX,sy,s,sqrt((1/N)+(((curX-meanX)^2)/(sum((X-meanX)^2)))),((curX-meanX)^2)/(sum((X-meanX)T^2)),(curX-meanX)^2,curX,meanX))
   if(N <= 2 || is.infinite(sy) || is.nan(sy))
   {return (Inf)}
-  
   return (qt(1-alpha/2,df=N-2)*sy)
 }
 
@@ -145,32 +140,6 @@ winInc <- function(X,Y ,fit,Dom,alpha,tHold){
   #print(Pred)
   #print(Z)
   if(max(U) > tHold)
-  {
-    return (TRUE)
-  }
-  else
-  {
-    return (FALSE) 
-  }
-}
-
-winInc1 <- function(X,Y ,fit,Dom,alpha){
-  Z = findConfInt(X,Y,fit,Dom,alpha)
-  
-  if(max(Z)==Inf)
-  {
-    return (TRUE)
-  }
-  s = sqrtMSE(X,Y,fit)*Dom
-  Z = Z*Dom
-  V2 = Dom
-  Pred =  Dom*predict(fit,newdata=as.data.frame(V2))
-  sThresh=s[which.max(Pred)]
-  U = (Pred + Z - sThresh-max(Pred))
-  #print(Pred)
-  #print(Z)
-  print(c(Pred,Z,sThresh ,U))
-  if(max(U) > 0)
   {
     return (TRUE)
   }
@@ -205,9 +174,9 @@ getConfQuality <- function(prevCQ, Y, X, alpha1, wt,iter,TauVal)
   {
     if((min(dfr1$V2)==X[length(X)]))
     {
-    predDem1=mean(dfr1$V1)
-    N1 = length(dfr1$V2)
-    CInt = (sd(dfr1$V1)*qt(1-alpha1/2,df=N1-1))/sqrt(N1)
+      predDem1=mean(dfr1$V1)
+      N1 = length(dfr1$V2)
+      CInt = (sd(dfr1$V1)*qt(1-alpha1/2,df=N1-1))/sqrt(N1)
     }
     else
     {
@@ -231,7 +200,6 @@ getConfQuality <- function(prevCQ, Y, X, alpha1, wt,iter,TauVal)
   ratio1 = abs((Y[length(Y)] - predDem1)/(CInt))*0.6931472  #Multiplied by -log(0.5)
   IQ = 2*exp(-(ratio1)^2) - 1
   #print(c(iter,ratio1,IQ,mid))
-  
   ##print(c(iter, TauVal, predDem1,CInt,DemandObseved[i], IQ))
   return (wt*prevCQ + (1-wt)*IQ)
   
@@ -288,16 +256,35 @@ getNewConfQuality <- function(prevCQ, Y, X, alpha1)
   
 }
 
-T = 130 #Horizon
+
+T = 500 #Horizon
 N = 800 #Market Size
-StdDev = 10 #Standard Deviation
-Tau = 20 #Sliding window length
 P = c(2.0,3.0,4.0)
-b = c(rep(5.5,40),rep(4.5,50),rep(9.0,40))
+StdDev=          44.9152282793075
+NumBreaks= 6         
+b=c(
+  rep(             8.34609719563741 ,                89               ),              
+  rep(             9.44672616838943 ,                28               ),              
+  rep(             7.68506058887579 ,                8                ),              
+  rep(             8.78601149783935 ,                59               ),              
+  rep(             6.54962118004914 ,                11               ),              
+  rep(             7.97926613478921 ,                172              ),              
+  rep(             5.69709108141251 ,                133              )
+)
+for (TauVal in c(seq(10,50,10),75,100)){
+  #for (wtVal in seq(0.75,0.75,0.1)){
+    CurReg = 0
+    CurRegGreedy = 0
+    for(seedVal in 1:10){
+
+
+Tau = TauVal #Sliding window length
+
+#b = c(rep(5.5,40),rep(4.5,50),rep(9.0,40))
 #b=c(rep(5.5,36),seq(5.4,4.6,-0.1),rep(4.5,40),seq(5,9,0.5),rep(9.0,36))
 
 
-set.seed(2)
+set.seed(seedVal)
 #RandUni = runif(T,-StdDev,StdDev) #Random error vector
 RandUni = rnorm(T,0,StdDev) #Random error vector
 
@@ -310,6 +297,7 @@ IQ = rep(0,T) #Vector of instantaneous quality
 CQ = rep(0,T) #Vector of cumulative quality
 #CQmean = rep(0,T)
 ##Greedy
+
 for (i in 1:T){
   curP=0
   curT=min(Tau,i-1)
@@ -335,12 +323,26 @@ for (i in 1:T){
   
 }
 RegVec = getRegret(T,N,P,b,PPulled)
-plot(c(1:T),RegVec,type="l",col="red",xlab="t",ylab="Regret",ylim=c(0,14000))
+#plot(c(1:130),RegVec,type="l",col="red",xlab="t",ylab="Regret",ylim=c(0,14000))
+CurRegGreedy = CurRegGreedy + RegVec[T]
 
-
+    }
+    print(c(TauVal,CurRegGreedy/10.0))
+    }
 
 ##Greedy
 
+for (confVal in c(0.01,0.05,0.1,0.2,0.25)){
+  #for (wtVal in seq(0.75,0.75,0.1)){
+  CurReg = 0
+  CurRegGreedy = 0
+  for(seedVal in 1:10){
+
+
+    set.seed(seedVal)
+    #RandUni = runif(T,-StdDev,StdDev) #Random error vector
+    RandUni = rnorm(T,0,StdDev) #Random error vector
+    
 ##Greedy with window cutting
 Tau=0
 ArmPulled = rep(0,T) #Arm pulled
@@ -391,19 +393,18 @@ for (i in 1:T){
   DemandObseved[i] = getDemand(N,P[curP],b[i],i)
   CumRew[i] = CumRew[max(i-1,1)] + PPulled[i]*DemandObseved[i]
   ##if(i>1){
-    #NormFact=40/400
-  print(c(i,Tau))
-    if(Tau<3)
-    {
-      Tau = Tau + 1
-      CQ[i] = 1
-    }
-    else{
+  #NormFact=40/400
+  if(Tau<3)
+  {
+    Tau = Tau + 1
+    CQ[i] = 1
+  }
+  else{
     #NormFact=2*sd(DemandObseved[(i-curT):(i)])/mean(DemandObseved[(i-curT):(i)])
     #CQ[i]=getQuality(CQ[i-1],DemandObseved[(i-curT):(i)],PPulled[(i-curT):(i)],NormFact,w=0.5)
     CQ[i] = getConfQuality(CQ[i-1],DemandObseved[(i-curT):(i)],PPulled[(i-curT):(i)],0.1,w=0.75,i, Tau)
-      
-  ###Other method    
+    
+    ###Other method    
     #alphaR = 0.4  
     #RVarRec[i]=  getNewConfQuality(CQ[i-1],DemandObseved[(i-curT):(i)],PPulled[(i-curT):(i)],alphaR)
     #RVarWidth = 10
@@ -413,8 +414,8 @@ for (i in 1:T){
     #}
     #else
     #{
-     # CQ[i]=mean(RVarRec[(i-RVarWidth+1):i])
-      #print(c(i,RVarRec[i],CQ[i],curT))
+    # CQ[i]=mean(RVarRec[(i-RVarWidth+1):i])
+    #print(c(i,RVarRec[i],CQ[i],curT))
     #}
     
     #if(CQ[i]<1-alphaR-0.1)
@@ -426,18 +427,23 @@ for (i in 1:T){
     if(CQ[i]<0)
     {
       Tau=1
-      
+      CQ[i]=1
     }
-    else if (winInc((PPulled[(i-curT):(i-1)]),DemandObseved[(i-curT):(i-1)] ,fit,P,0.05,0.1) == TRUE)
-    #else if(winInc1((PPulled[(i-curT):(i-1)]),DemandObseved[(i-curT):(i-1)] ,fit,P,0.05) == TRUE)
+    else if (winInc((PPulled[(i-curT):(i-1)]),DemandObseved[(i-curT):(i-1)] ,fit,P,0.05,confVal) == TRUE)
     {
       Tau=Tau+1
     }
-    }
-
+  }
+  
   
   
 }
 
 RegVec = getRegret(T,N,P,b,PPulled)
-lines(c(1:T),RegVec,type="l",col="green")
+CurReg = CurReg + RegVec[T]
+    }
+    print(c(confVal,CurReg/10.0))
+    #print(CurReg/10.0)
+  }
+  
+#lines(c(1:130),RegVec,type="l",col="green")

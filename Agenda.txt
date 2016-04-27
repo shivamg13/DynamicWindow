@@ -24,5 +24,20 @@ Reason for change from multiplicative decrease to sudden decrease : Multiplicati
 General idea for threshhold : Should be more for more standard deviation. Reason - interval= t*sd*sqrt(...)
 
 When a sliding window contains all the arms which are same, then next arm pulled is chosen to be as close to the already present arms in the window. This will help not drastically changing the confidence interval due to change in x_bar. 
+Another drawback of sliding window: Once when the window size is halved, Confidence interval will increase (due to less samples) leading to difficult detection
 
 "What is the penalty of not increasing the window size" : You will end up having all the arms same in the window more often, resulting in having to pull a non-optimal arm resulting in more cumulative regret. "What is the fix" : Whenever such a scenario happens increase the window size by 1. In this way, we get the best of both worlds, resulting in increasing the window size by O(sqrt(T)) in such cases in worst case. 
+
+In high standard deviation, it is difficult to detect small changes in b.
+
+In the thesis, discuss 
+-- the difference between prediction interval and confidence interval
+-- For restricting the window size, what is the drawback of taking small tolerance
+
+Taking only the half window will also help when changes in b are of continuous nature as compared to abrupt
+
+Other alternatives:
+-Divide window size by half: After making it half, CI increases which makes it difficult to detect further changes
+-Take average of past 10 : doesn't take into account the exact devaiation
+-Detect increase in SD
+
